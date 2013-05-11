@@ -1,0 +1,15 @@
+html{
+    background: red;
+}
+#someId{
+    color: red;
+}
+#someId.someClass:active{
+    color: red;
+}
+#someId{
+    color: black !important;
+}
+*{
+    display: initial;
+}
