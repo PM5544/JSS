@@ -102,6 +102,8 @@ Selector.prototype.addStyle = function ( style ) {
 
     this.style = style;
 
+    this.calculateSpecificity();
+
     return this;
 };
 
@@ -399,9 +401,6 @@ window.onload = function () {
         }
     }
 
-    allSelectors.sort( Selector.prototype.compareSpecificity );
-
-    //allStyles.reverse()
 
     console.log(  "allSelectors.length: ", allSelectors.length );
     console.log( "allStyles.length: " , allStyles.length );
@@ -416,6 +415,5 @@ window.onload = function () {
 
         console.log( allStyles[ a ] );
     }
-    // ?javascript:(function(doc){doc.body.appendChild(doc.createElement("scr"+"ipt")).setAttribute("src","http://localhost.test.nl/PM5544/cssInfo.js")})(document)
 }
 
