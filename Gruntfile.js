@@ -1,25 +1,27 @@
 module.exports = function(grunt) {
 
-  // Project configuration.
-  grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
-    uglify: {
-      src: 'src/js/**/*.js',
-      dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.min.js',
-      options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
-      },
-      build: {
-        src: 'src/<%= pkg.name %>.js',
-        dest: 'build/<%= pkg.name %>.min.js'
-      }
-    }
-  });
+    // Project configuration.
+    grunt.initConfig({
+        pkg: grunt.file.readJSON('package.json'),
+        uglify: {
+            options: {
+                banner: '/*! <%= pkg.name %>' +
+                    ' <%= grunt.template.today("yyyy-mm-dd HH:mm") %> */\n'
+            },
+            dist: {
+                src: 'src/js/**/*.js',
+                dest: 'dist/jss.min.js'
+            }
+        },
+        clean: {
+            build: ["dist"],
+            release: ["dist-prod"]
+        }
+    });
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-clean');
 
-  // Load the plugin that provides the "uglify" task.
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-
-  // Default task(s).
-  grunt.registerTask('default', ['uglify']);
+    // Default task(s).
+    grunt.registerTask('default', ['clean','uglify']);
 
 };
