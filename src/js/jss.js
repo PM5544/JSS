@@ -402,23 +402,11 @@ window.onload = function () {
     }
 
     allSelectors.sort( Selector.prototype.compareSpecificity );
-    console.log( allSelectors );
-
-    //allStyles.reverse()
 
     console.log(  "allSelectors.length: ", allSelectors.length );
     console.log( "allStyles.length: " , allStyles.length );
 
     window.allSelectors = allSelectors;
     window.allStyles = allStyles;
-
-    for ( var a = 0, aLen = allStyles.length; a < aLen; a++ ) {
-
-        //allStyles[ a ].replaceInSelectors( /li(?!\w)/gi, '.li' )
-        //output.innerHTML += allStyles[ a ] + '<br />'
-
-        //console.log( allStyles[ a ] );
-    }
-    // ?javascript:(function(doc){doc.body.appendChild(doc.createElement("scr"+"ipt")).setAttribute("src","http://localhost.test.nl/PM5544/cssInfo.js")})(document)
 }
 
