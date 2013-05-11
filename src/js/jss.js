@@ -18,338 +18,335 @@
 
 
 
-window.onload = function()
-{
+var compat = (function () {
 
-var JSS = ( function ( win, doc, undefined ) {
-
-    var compat = (function () {
-
-        var check           = doc.createElement( 'style' )
-        ,   DOMStyle        = 'undefined' !== typeof check.sheet ? 'sheet' : undefined !== check.getSheet ? 'getSheet' : 'styleSheet'
-        ,   scopeSupported  = undefined !== check.scoped
-        ,   testSheet
-        ,   DOMRules
-        ,   testStyle
-        ,   DOMParentSheet
-        ;
-
-        // we need to append it to the DOM because the DOM element at least FF keeps NULL as a sheet utill appended
-        // and we can't check for the rules / cssRules and changeSelectorText untill we have that
-        doc.body.appendChild( check );
-        testSheet           = check[ DOMStyle ];
-
-        // add a test styleRule to be able to test selectorText changing support
-        // IE doesn't allow inserting of '' as a styleRule
-        testSheet.addRule ? testSheet.addRule( 'c', 'blink' ) : testSheet.insertRule( 'c{}', 0 );
-
-        // store the way to get to the list of rules
-        DOMRules            = testSheet.rules ? 'rules' : 'cssRules';
-
-        // cache the test rule (its allways the first since we didn't add any other thing inside this <style>
-        testStyle           = testSheet[ DOMRules ][ 0 ];
-
-        // try catch it to prevent IE from throwing errors
-        // can't check the read-only flag since IE just throws errors when setting it and Firefox won't allow setting it (and has no read-only flag
-        try{
-            testStyle.selectorText = 'd';
-        }catch( e ){}
-
-        // check if the selectorText has changed to the value we tried to set it to
-        // toLowerCase() it to account for browsers who change the text
-        var changeSelectorTextAllowed = 'd' === testStyle.selectorText.toLowerCase();
-
-        // remove the <style> to clean up
-        check.parentNode.removeChild( check );
-
-        // return the object with the appropriate flags
-        return {
-            scopeSupported: scopeSupported
-        ,   rules: DOMRules
-        ,   sheet: DOMStyle
-        ,   parent: DOMParentSheet
-        ,   changeSelectorTextAllowed: changeSelectorTextAllowed
-        };
-    } ) ();
-
-    console.log( "changeSelectorTextAllowed: ", compat.changeSelectorTextAllowed );
-
-
-    var styleSheets
-    ,   sheetSelector
-    ,   allStyles               = []
-    ,   allSelectors            = []
-    ,   DOMSheet
-    ,   ruleSelector
-    ,   DOMStyles
-    ,   sheet
-    ,   highest                 = 0
-    ,   stylesSplitter          = /\s*;\s*/
-    ,   styleSplitter           = /\s*:(?!\/)\s*/
-    ,   selectorSplitter        = /\s*,\s*/
-    ,   importantSpecificity    = /!important/g
-    ,   idSpecificity           = /#[a-zA-Z0-9-_]+/g
-    ,   classSpecificity        = /(\.|:)[a-zA-Z0-9-_]+/g
-    ,   elementSpecificity      = /\s*[a-zA-Z0-9-_]+/g
+    var check           = document.createElement( 'style' )
+    ,   DOMStyle        = 'undefined' !== typeof check.sheet ? 'sheet' : undefined !== check.getSheet ? 'getSheet' : 'styleSheet'
+    ,   scopeSupported  = undefined !== check.scoped
+    ,   testSheet
+    ,   DOMRules
+    ,   testStyle
+    ,   DOMParentSheet
     ;
 
-    function Selector( selectorText ) {
+    // we need to append it to the DOM because the DOM element at least FF keeps NULL as a sheet utill appended
+    // and we can't check for the rules / cssRules and changeSelectorText untill we have that
+    document.body.appendChild( check );
+    testSheet           = check[ DOMStyle ];
 
-        if ( !this instanceof Selector ) {
-            return new Selector( selectorText );
-        }
+    // add a test styleRule to be able to test selectorText changing support
+    // IE doesn't allow inserting of '' as a styleRule
+    testSheet.addRule ? testSheet.addRule( 'c', 'blink' ) : testSheet.insertRule( 'c{}', 0 );
 
-        this.selectorText   = selectorText;
-        this.specificity    = undefined;
-        this.style          = undefined;
+    // store the way to get to the list of rules
+    DOMRules            = testSheet.rules ? 'rules' : 'cssRules';
 
-        return this;
+    // cache the test rule (its allways the first since we didn't add any other thing inside this <style>
+    testStyle           = testSheet[ DOMRules ][ 0 ];
+
+    // try catch it to prevent IE from throwing errors
+    // can't check the read-only flag since IE just throws errors when setting it and Firefox won't allow setting it (and has no read-only flag
+    try{
+        testStyle.selectorText = 'd';
+    }catch( e ){}
+
+    // check if the selectorText has changed to the value we tried to set it to
+    // toLowerCase() it to account for browsers who change the text
+    var changeSelectorTextAllowed = 'd' === testStyle.selectorText.toLowerCase();
+
+    // remove the <style> to clean up
+    check.parentNode.removeChild( check );
+
+    // return the object with the appropriate flags
+    return {
+        scopeSupported: scopeSupported
+    ,   rules: DOMRules
+    ,   sheet: DOMStyle
+    ,   parent: DOMParentSheet
+    ,   changeSelectorTextAllowed: changeSelectorTextAllowed
+    };
+} ) ();
+
+
+console.log( "changeSelectorTextAllowed: ", compat.changeSelectorTextAllowed );
+
+
+var styleSheets
+,   sheetSelector
+,   allStyles               = []
+,   allSelectors            = []
+,   DOMSheet
+,   ruleSelector
+,   DOMStyles
+,   sheet
+,   highest                 = 0
+,   stylesSplitter          = /\s*;\s*/
+,   styleSplitter           = /\s*:(?!\/)\s*/
+,   selectorSplitter        = /\s*,\s*/
+,   importantSpecificity    = /!important/g
+,   idSpecificity           = /#[a-zA-Z0-9-_]+/g
+,   classSpecificity        = /(\.|:)[a-zA-Z0-9-_]+/g
+,   elementSpecificity      = /\s*[a-zA-Z0-9-_]+/g
+;
+
+function Selector( selectorText ) {
+
+    if ( !this instanceof Selector ) {
+        return new Selector( selectorText );
     }
 
-    Selector.prototype.addStyle = function ( style ) {
-        if ( !style ) {
-            return undefined;
-        }
+    this.selectorText   = selectorText;
+    this.specificity    = undefined;
+    this.style          = undefined;
 
-        this.style = style;
+    return this;
+}
+
+Selector.prototype.addStyle = function ( style ) {
+    if ( !style ) {
+        return undefined;
+    }
+
+    this.style = style;
+
+    return this;
+};
+
+Selector.prototype.replace = function( ) {
+
+     this.selectorText = String.prototype.replace.apply( this.selectorText, arguments );
+
+};
+
+Selector.prototype.calculateSpecificity = function () {
+
+    var str = this.selectorText;
+
+    var imp = str.match( importantSpecificity );
+
+    if ( imp ) {
+        str = str.replace( importantSpecificity, ' ' );
+    }
+
+    var ids  = str.match( idSpecificity );
+    if ( ids ) {
+        str = str.replace( idSpecificity, ' ' );
+    }
+
+    var classes = str.match( classSpecificity );
+    if ( classes ) {
+        str = str.replace( classSpecificity, ' ' );
+    }
+
+    var elements = str.match( elementSpecificity );
+
+    this.specificity = [
+        imp         ? imp.length        : 0
+    ,   ids         ? ids.length        : 0
+    ,   classes     ? classes.length    : 0
+    ,   elements    ? elements.length   : 0
+    ].concat( this.style.domPosition );
+};
+
+Selector.prototype.getSpecificity = function () {
+
+    if ( !this.specificity ) {
+        this.calculateSpecificity();
+    }
+
+    return this.specificity;
+};
+
+Selector.prototype.compareSpecificity = function ( _a, _b ) {
+
+    var a
+    ,   b
+    ,   aSpec
+    ,   bSpec
+    ;
+
+    if ( !_a && !_b ) {
 
         return this;
-    };
 
-    Selector.prototype.replace = function( ) {
+    } else if ( !_b ) {
 
-         this.selectorText = String.prototype.replace.apply( this.selectorText, arguments );
+        b = _a;
+        a = this;
 
-    };
+    } else {
 
-    Selector.prototype.calculateSpecificity = function () {
+        a = _a;
+        b = _b;
 
-        var str = this.selectorText;
+    }
 
-        var imp = str.match( importantSpecificity );
+    aSpec = a.getSpecificity();
+    bSpec = b.getSpecificity();
 
-        if ( imp ) {
-            str = str.replace( importantSpecificity, ' ' );
-        }
+    for ( var i = 0, len = aSpec.length; i < len; i++  ) {
 
-        var ids  = str.match( idSpecificity );
-        if ( ids ) {
-            str = str.replace( idSpecificity, ' ' );
-        }
+        if ( aSpec[ i ] !== bSpec[ i ] ) {
 
-        var classes = str.match( classSpecificity );
-        if ( classes ) {
-            str = str.replace( classSpecificity, ' ' );
-        }
-
-        var elements = str.match( elementSpecificity );
-
-        this.specificity = [
-            imp         ? imp.length        : 0
-        ,   ids         ? ids.length        : 0
-        ,   classes     ? classes.length    : 0
-        ,   elements    ? elements.length   : 0
-        ].concat( this.style.domPosition );
-    };
-
-    Selector.prototype.getSpecificity = function () {
-
-        if ( !this.specificity ) {
-            this.calculateSpecificity();
-        }
-
-        return this.specificity;
-    };
-
-    Selector.prototype.compareSpecificity = function ( _a, _b ) {
-
-        var a
-        ,   b
-        ,   aSpec
-        ,   bSpec
-        ;
-
-        if ( !_a && !_b ) {
-
-            return this;
-
-        } else if ( !_b ) {
-
-            b = _a;
-            a = this;
-
-        } else {
-
-            a = _a;
-            b = _b;
-
-        }
-
-        aSpec = a.getSpecificity();
-        bSpec = b.getSpecificity();
-
-        for ( var i = 0, len = aSpec.length; i < len; i++  ) {
-
-            if ( aSpec[ i ] !== bSpec[ i ] ) {
-
-                if ( aSpec[ i ] > bSpec[ i ] ) {
-                    return _b ? -1 :  this;
-                } else {
-                    return _b ? 1 : _a;
-                }
+            if ( aSpec[ i ] > bSpec[ i ] ) {
+                return _b ? -1 :  this;
+            } else {
+                return _b ? 1 : _a;
             }
         }
-        return _b ? 0 : this;
-    };
+    }
+    return _b ? 0 : this;
+};
 
-    Selector.prototype.toString = function () {
+Selector.prototype.toString = function () {
 
-        return this.selectorText;
+    return this.selectorText;
 
-    };
+};
 
 
 
-    function Style ( params ) {
+function Style ( params ) {
 
-        if ( !this instanceof Style ) {
-            return new Selector( params );
-        }
+    if ( !this instanceof Style ) {
+        return new Selector( params );
+    }
 
-        this.domStyle       = undefined;
-        this.rules          = [];
-        this.sheet          = params.sheet;
-        this.selectors      = [];
-        this.properties     = [];
-        this.domPosition    = 'undefined' !== typeof params.sheetCounter && 'undefined' !== typeof  params.styleCounter ? [ params.sheetCounter, params.styleCounter ] : [ 0, 0 ];
-        if ( params.sheet[ compat.rules ][ params.styleCounter ] ) {
-            this.fillStyle( params.sheet[ compat.rules ][ params.styleCounter ] );
-        }
+    this.domStyle       = undefined;
+    this.rules          = [];
+    this.sheet          = params.sheet;
+    this.selectors      = [];
+    this.properties     = [];
+    this.domPosition    = 'undefined' !== typeof params.sheetCounter && 'undefined' !== typeof  params.styleCounter ? [ params.sheetCounter, params.styleCounter ] : [ 0, 0 ];
+    if ( params.sheet[ compat.rules ][ params.styleCounter ] ) {
+        this.fillStyle( params.sheet[ compat.rules ][ params.styleCounter ] );
+    }
 
-        return this;
+    return this;
+
+}
+
+Style.prototype.addSelector = function ( selector ) {
+
+    this.selectors.push( selector );
+    return this;
+
+};
+
+Style.prototype.getSelectors = function () {
+
+    return this.selectors;
+
+};
+
+Style.prototype.removeAndInsert = function() {
+
+    var selector    = this.selectors.join( ', ' )
+    ,   styleRule   = "" + this
+    ;
+
+    output.innerHTML += this.domPosition[ 0 ] +','+ this.domPosition[ 1 ] /* selector + ' : '+ styleRule */ + '<br />';
+
+    // addRule and removeRule are IE specific, IE doesn't allow inserting of a rule at an index, it always adds it to the end of the stack
+    // insertRule and deleteRule are Gecko specific
+    //
+    this.sheet.addRule    ? this.sheet.addRule( selector, styleRule )      : this.sheet.insertRule( selector + '{' + styleRule + '}', this.domPosition[ 1 ] );
+    this.sheet.removeRule ? this.sheet.removeRule( this.domPosition[ 1 ] ) : this.sheet.deleteRule( this.domPosition[ 1 ] );
+
+};
+
+Style.prototype.changeSelectors = (function( support ) {
+
+    if ( support ) {
+
+        return function( newSelector ) {
+            this.domStyle.selectorText = this.selectors.join( ', ' );
+        };
+
+    } else {
+
+        return function( newSelector ) {
+            this.removeAndInsert();
+        };
+
+    }
+} ) ( compat.changeSelectorTextAllowed );
+
+Style.prototype.replaceInSelectors = function( from, to ) {
+
+    var selectors = this.getSelectors()
+    ,   i = 0
+    ,   curSelector
+    ;
+
+    while ( ( curSelector = selectors[ i ] ) ) {
+        curSelector.replace( from, to );
+        i += 1;
+    }
+
+    this.changeSelectors();
+    return this;
+
+};
+
+Style.prototype.fillStyle = function ( domStyle ) {
+
+    if ( !domStyle ){
+        return;
+    }
+
+    var cssTextArray
+    ,   selectorsArray
+    ,   styles       = domStyle.style
+    ,   tempCssText
+    ;
+
+    this.domStyle   = domStyle;
+    this.rules      = {};
+    this.selectors  = [];
+    this.properties = [];
+
+    cssTextArray = styles.cssText.split( stylesSplitter );
+    cssTextArray.pop();
+
+    for ( var i = 0, len = cssTextArray.length; i < len; i++ ) {
+
+        tempCssText = cssTextArray[ i ].split( styleSplitter );
+        this.rules[ tempCssText[ 0 ] ] = tempCssText[ 1 ];
 
     }
 
-    Style.prototype.addSelector = function ( selector ) {
+    for ( var i = 0, len = styles.length; i < len; i++ ) {
+        this.properties.push( styles[ i ] )
+    }
 
-        this.selectors.push( selector );
-        return this;
+    selectorsArray = domStyle.selectorText ? domStyle.selectorText.split( selectorSplitter ) : [ domStyle.cssText.split( '{' )[ 0 ] ];
+    for ( var i = 0, len = selectorsArray.length; i < len; i++ ) {
+        this.addSelector( new Selector( selectorsArray[ i ] ).addStyle( this ) );
+    }
 
-    };
+    return this;
 
-    Style.prototype.getSelectors = function () {
+};
 
-        return this.selectors;
+Style.prototype.toString = function() {
 
-    };
+    return this.domStyle.style.cssText;
 
-    Style.prototype.removeAndInsert = function() {
-
-        var selector    = this.selectors.join( ', ' )
-        ,   styleRule   = "" + this
-        ;
-
-        output.innerHTML += this.domPosition[ 0 ] +','+ this.domPosition[ 1 ] /* selector + ' : '+ styleRule */ + '<br />';
-
-        // addRule and removeRule are IE specific, IE doesn't allow inserting of a rule at an index, it always adds it to the end of the stack
-        // insertRule and deleteRule are Gecko specific
-        //
-        this.sheet.addRule    ? this.sheet.addRule( selector, styleRule )      : this.sheet.insertRule( selector + '{' + styleRule + '}', this.domPosition[ 1 ] );
-        this.sheet.removeRule ? this.sheet.removeRule( this.domPosition[ 1 ] ) : this.sheet.deleteRule( this.domPosition[ 1 ] );
-
-    };
-
-    Style.prototype.changeSelectors = (function( support ) {
-
-        if ( support ) {
-
-            return function( newSelector ) {
-                this.domStyle.selectorText = this.selectors.join( ', ' );
-            };
-
-        } else {
-
-            return function( newSelector ) {
-                this.removeAndInsert();
-            };
-
-        }
-    } ) ( compat.changeSelectorTextAllowed );
-
-    Style.prototype.replaceInSelectors = function( from, to ) {
-
-        var selectors = this.getSelectors()
-        ,   i = 0
-        ,   curSelector
-        ;
-
-        while ( ( curSelector = selectors[ i ] ) ) {
-            curSelector.replace( from, to );
-            i += 1;
-        }
-
-        this.changeSelectors();
-        return this;
-
-    };
-
-    Style.prototype.fillStyle = function ( domStyle ) {
-
-        if ( !domStyle ){
-            return;
-        }
-
-        var cssTextArray
-        ,   selectorsArray
-        ,   styles       = domStyle.style
-        ,   tempCssText
-        ;
-
-        this.domStyle   = domStyle;
-        this.rules      = {};
-        this.selectors  = [];
-        this.properties = [];
-
-        cssTextArray = styles.cssText.split( stylesSplitter );
-        cssTextArray.pop();
-
-        for ( var i = 0, len = cssTextArray.length; i < len; i++ ) {
-
-            tempCssText = cssTextArray[ i ].split( styleSplitter );
-            this.rules[ tempCssText[ 0 ] ] = tempCssText[ 1 ];
-
-        }
-
-        for ( var i = 0, len = styles.length; i < len; i++ ) {
-            this.properties.push( styles[ i ] )
-        }
-
-        selectorsArray = domStyle.selectorText ? domStyle.selectorText.split( selectorSplitter ) : [ domStyle.cssText.split( '{' )[ 0 ] ];
-        for ( var i = 0, len = selectorsArray.length; i < len; i++ ) {
-            this.addSelector( new Selector( selectorsArray[ i ] ).addStyle( this ) );
-        }
-
-        return this;
-
-    };
-
-    Style.prototype.toString = function() {
-
-        return this.domStyle.style.cssText;
-
-    };
+};
 
 
-    if ( doc.querySelectorAll ) {
+window.onload = function () {
+    if ( document.querySelectorAll ) {
 
-        styleSheets =  doc.querySelectorAll( "link[rel='stylesheet'], style" );
+        styleSheets =  document.querySelectorAll( "link[rel='stylesheet'], style" );
 
     } else {
 
         styleSheets = ( function () {
 
-            var links   = doc.getElementsByTagName( 'link'  )
-            ,   styles  = doc.getElementsByTagName( 'style' )
+            var links   = document.getElementsByTagName( 'link'  )
+            ,   styles  = document.getElementsByTagName( 'style' )
             ,   ar      = []
             ,   i
             ;
@@ -414,12 +411,7 @@ var JSS = ( function ( win, doc, undefined ) {
         //output.innerHTML += allStyles[ a ] + '<br />'
 
         console.log( allStyles[ a ] );
-
-
     }
-// ?javascript:(function(doc){doc.body.appendChild(doc.createElement("scr"+"ipt")).setAttribute("src","http://localhost.test.nl/PM5544/cssInfo.js")})(document)
-
-
-} ) ( window, window.document );
-
+    // ?javascript:(function(doc){doc.body.appendChild(doc.createElement("scr"+"ipt")).setAttribute("src","http://localhost.test.nl/PM5544/cssInfo.js")})(document)
 }
+
