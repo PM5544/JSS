@@ -71,15 +71,8 @@ var compat = (function () {
 console.log( "changeSelectorTextAllowed: ", compat.changeSelectorTextAllowed );
 
 
-var styleSheets
-,   sheetSelector
-,   allStyles               = []
-,   allSelectors            = []
-,   DOMSheet
-,   ruleSelector
-,   DOMStyles
-,   sheet
-,   highest                 = 0
+
+var highest                 = 0
 ,   stylesSplitter          = /\s*;\s*/
 ,   styleSplitter           = /\s*:(?!\/)\s*/
 ,   selectorSplitter        = /\s*,\s*/
@@ -337,6 +330,17 @@ Style.prototype.toString = function() {
 
 
 window.onload = function () {
+
+    var styleSheets
+    ,   sheetSelector
+    ,   allStyles               = []
+    ,   allSelectors            = []
+    ,   DOMSheet
+    ,   ruleSelector
+    ,   DOMStyles
+    ,   sheet
+    ;
+
     if ( document.querySelectorAll ) {
 
         styleSheets =  document.querySelectorAll( "link[rel='stylesheet'], style" );
