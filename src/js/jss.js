@@ -402,8 +402,8 @@ window.onload = function () {
     console.log(  "allSelectors.length: ", allSelectors.length );
     console.log( "allStyles.length: " , allStyles.length );
 
-    win.allSelectors = allSelectors;
-    win.allStyles = allStyles;
+    window.allSelectors = allSelectors;
+    window.allStyles = allStyles;
 
     for ( var a = 0, aLen = allStyles.length; a < aLen; a++ ) {
 
