@@ -1,0 +1,25 @@
+{
+  "name": "JSS",
+  "version": "0.0.0",
+  "description": "A small javascript library to manipulate css styles",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PM5544/JSS.git"
+  },
+  "keywords": [
+    "css",
+    "js"
+  ],
+  "author": "PM5544",
+  "license": "DWTFYWT",
+  "devDependencies": {
+    "grunt": "~0.4.1"
+  }
+}
