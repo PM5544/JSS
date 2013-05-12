@@ -1,15 +1,15 @@
 html{
-    background: red;
+    background: white;
 }
 #someId{
     color: red;
 }
-#someId.someClass:active{
-    color: red;
+#someId.someClass:active #someOtherId.someOtherClass #thirdId{
+    color: red !important;
 }
 #someId{
     color: black !important;
 }
 *{
-    display: initial;
+    color: initial;
 }

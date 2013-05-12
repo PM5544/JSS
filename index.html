@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>JSS testpage</title>
+<link rel="stylesheet" type="text/css" href="testStyles1.css" />
+<link rel="stylesheet" type="text/css" href="testStyles2.css" />
+<style>body{background-color:white;}</style>
+<link rel="stylesheet" type="text/css" href="jasmine-1.3.1/jasmine.css" />
+<script src="jasmine-1.3.1/jasmine.js"></script>
+<script src="jasmine-1.3.1/jasmine-html.js"></script>
+</head>
+<body>
+<h1>test page</h1>
+<style>
+html body{
+    background: white;
+}
+</style>
+<style scoped>
+p{
+    color: black;
+}
+</style>
+<script src="../src/js/jss.js"></script>
+<script src="tests.js"></script>
+<script>
+(function() {
+  var jasmineEnv = jasmine.getEnv();
+  jasmineEnv.updateInterval = 1000;
+
+  var htmlReporter = new jasmine.HtmlReporter();
+
+  jasmineEnv.addReporter(htmlReporter);
+
+  jasmineEnv.specFilter = function(spec) {
+    return htmlReporter.specFilter(spec);
+  };
+
+  var currentWindowOnload = window.onload;
+
+  window.onload = function() {
+
+    jss.init();
+
+    console.log( "Selectors: ", jss.getSelectors() );
+    console.log( "Styles: ", jss.getStyles() );
+
+    if (currentWindowOnload) {
+      currentWindowOnload();
+    }
+    execJasmine();
+  };
+
+  function execJasmine() {
+    jasmineEnv.execute();
+  }
+
+})();
+</script>
+</body>
+</html>
