@@ -1,8 +1,8 @@
 {
   "name": "JSS",
   "version": "0.0.0",
-  "description": "A small javascript library to manipulate css styles",
-  "main": "index.js",
+  "description": "A small javascript library to inspect CSS styleRules and selectors in the DOM",
+  "main": "jss.js",
   "directories": {
     "test": "tests"
   },
@@ -20,7 +20,6 @@
   "author": "PM5544",
   "license": "DWTFYWT",
   "devDependencies": {
-    "grunt": "~0.4.1",
-    "grunt-karma": "~0.4.4"
+    "grunt": "~0.4.1"
   }
 }
